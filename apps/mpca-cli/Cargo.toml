@@ -1,0 +1,16 @@
+[package]
+name = "mpca-cli"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "mpca"
+path = "src/main.rs"
+
+[dependencies]
+clap = { workspace = true }
+ratatui = { workspace = true }
+mpca-core = { workspace = true }
+mpca-pm = { workspace = true }
+tokio = { workspace = true }
+anyhow = { workspace = true }
