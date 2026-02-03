@@ -211,6 +211,7 @@ impl AgentRuntime {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
     use std::process::Command;
     use tempfile::TempDir;
 
@@ -218,18 +219,36 @@ mod tests {
         Command::new("git")
             .args(["init"])
             .current_dir(dir)
+            .env("PRE_COMMIT_ALLOW_NO_CONFIG", "1")
             .output()
             .unwrap();
 
         Command::new("git")
             .args(["config", "user.name", "Test User"])
             .current_dir(dir)
+            .env("PRE_COMMIT_ALLOW_NO_CONFIG", "1")
             .output()
             .unwrap();
 
         Command::new("git")
             .args(["config", "user.email", "test@example.com"])
             .current_dir(dir)
+            .env("PRE_COMMIT_ALLOW_NO_CONFIG", "1")
+            .output()
+            .unwrap();
+
+        // Create initial commit
+        fs::write(dir.join("README.md"), "# Test Repo").unwrap();
+        Command::new("git")
+            .args(["add", "README.md"])
+            .current_dir(dir)
+            .env("PRE_COMMIT_ALLOW_NO_CONFIG", "1")
+            .output()
+            .unwrap();
+        Command::new("git")
+            .args(["commit", "-m", "Initial commit"])
+            .current_dir(dir)
+            .env("PRE_COMMIT_ALLOW_NO_CONFIG", "1")
             .output()
             .unwrap();
     }
