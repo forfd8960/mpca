@@ -135,53 +135,49 @@ impl AgentRuntime {
         workflows::init_project(&self.config, &*self.tools.fs, &*self.tools.git)
     }
 
-    /// Plans a new feature with the given slug (to be implemented in Stage 4).
+    /// Plans a new feature with the given slug.
     ///
     /// # Arguments
     ///
-    /// * `_feature_slug` - The feature identifier (e.g., "add-caching").
+    /// * `feature_slug` - The feature identifier (e.g., "add-caching").
     ///
     /// # Returns
     ///
-    /// Currently returns `Ok(())` as a stub. Will be fully implemented in Stage 4.
+    /// `Ok(())` on successful planning, or an error if planning fails.
     ///
     /// # Errors
     ///
-    /// Will return errors related to feature planning once implemented.
-    #[allow(unused_variables)]
-    pub fn plan_feature(&self, _feature_slug: &str) -> Result<()> {
-        // TODO: Implement in Stage 4
-        // - Load prompt manager
-        // - Initialize Claude agent with plan mode
-        // - Run interactive TUI for feature planning
-        // - Save specs to .mpca/specs/<feature-slug>/
-        // - Create git worktree in .trees/<feature-slug>/
-        Ok(())
+    /// Returns errors related to feature planning (see `workflows::plan_feature`).
+    pub fn plan_feature(&self, feature_slug: &str) -> Result<()> {
+        workflows::plan_feature(
+            &self.config,
+            feature_slug,
+            &*self.tools.fs,
+            &*self.tools.git,
+        )
     }
 
-    /// Executes a feature plan with the given slug (to be implemented in Stage 4).
+    /// Executes a feature plan with the given slug.
     ///
     /// # Arguments
     ///
-    /// * `_feature_slug` - The feature identifier (e.g., "add-caching").
+    /// * `feature_slug` - The feature identifier (e.g., "add-caching").
     ///
     /// # Returns
     ///
-    /// Currently returns `Ok(())` as a stub. Will be fully implemented in Stage 4.
+    /// `Ok(())` on successful execution, or an error if execution fails.
     ///
     /// # Errors
     ///
-    /// Will return errors related to feature execution once implemented.
-    #[allow(unused_variables)]
-    pub fn run_feature(&self, _feature_slug: &str) -> Result<()> {
-        // TODO: Implement in Stage 4
-        // - Load feature specs from .mpca/specs/<feature-slug>/
-        // - Initialize Claude agent with run mode
-        // - Execute implementation workflow
-        // - Run verification
-        // - Commit changes
-        // - Generate report
-        Ok(())
+    /// Returns errors related to feature execution (see `workflows::execute_feature`).
+    pub fn run_feature(&self, feature_slug: &str) -> Result<()> {
+        workflows::execute_feature(
+            &self.config,
+            feature_slug,
+            &*self.tools.fs,
+            &*self.tools.git,
+            &*self.tools.shell,
+        )
     }
 
     /// Sends a chat message to the agent (to be implemented in Stage 4).
@@ -287,17 +283,24 @@ mod tests {
     #[test]
     fn test_plan_feature_stub() {
         let temp_dir = TempDir::new().unwrap();
+        init_test_repo(temp_dir.path());
+
         let config = MpcaConfig::new(temp_dir.path().to_path_buf());
         let runtime = AgentRuntime::new(config).unwrap();
 
         // Should succeed (stub implementation)
         let result = runtime.plan_feature("test-feature");
+        if let Err(e) = &result {
+            eprintln!("Error: {:#}", e);
+        }
         assert!(result.is_ok());
     }
 
     #[test]
     fn test_run_feature_stub() {
         let temp_dir = TempDir::new().unwrap();
+        init_test_repo(temp_dir.path());
+
         let config = MpcaConfig::new(temp_dir.path().to_path_buf());
         let runtime = AgentRuntime::new(config).unwrap();
 

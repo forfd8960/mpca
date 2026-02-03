@@ -17,6 +17,7 @@ ratatui = "0.30.0"
 minijinja = { version = "2.15.1", features = ["loader"] }
 claude-agent-sdk-rs = "0.6.3"
 tempfile = "3.17.0"
+toml = "0.8"
 
 mpca-core = { path = "crates/mpca-core" }
 mpca-pm = { path = "crates/mpca-pm" }

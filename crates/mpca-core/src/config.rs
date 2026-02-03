@@ -4,6 +4,8 @@
 //! including main configuration, git settings, review settings, agent modes,
 //! and tool sets.
 
+use crate::error::{MPCAError, Result};
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 /// Main MPCA configuration.
@@ -11,7 +13,7 @@ use std::path::PathBuf;
 /// Contains all paths, settings, and sub-configurations needed for MPCA runtime.
 /// This structure is typically loaded from `.mpca/config.toml` with defaults
 /// applied for missing values.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MpcaConfig {
     /// Repository root directory (absolute path).
     pub repo_root: PathBuf,
@@ -69,13 +71,51 @@ impl MpcaConfig {
             tool_sets: WorkflowTools::default(),
         }
     }
+
+    /// Loads configuration from `.mpca/config.toml` if it exists, otherwise returns defaults.
+    ///
+    /// # Arguments
+    ///
+    /// * `repo_root` - The repository root directory.
+    ///
+    /// # Returns
+    ///
+    /// A loaded or default `MpcaConfig`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the config file exists but cannot be parsed.
+    pub fn load(repo_root: PathBuf) -> Result<Self> {
+        let config_file = repo_root.join(".mpca").join("config.toml");
+
+        if !config_file.exists() {
+            // Return defaults if no config file
+            return Ok(Self::new(repo_root));
+        }
+
+        // Read and parse TOML
+        let content = std::fs::read_to_string(&config_file)
+            .map_err(|e| MPCAError::ConfigParseError(format!("failed to read config: {}", e)))?;
+
+        let mut config: MpcaConfig = toml::from_str(&content)
+            .map_err(|e| MPCAError::ConfigParseError(format!("failed to parse TOML: {}", e)))?;
+
+        // Override paths with canonical values based on repo_root
+        config.repo_root = repo_root.clone();
+        config.trees_dir = repo_root.join(".trees");
+        config.specs_dir = repo_root.join(".mpca").join("specs");
+        config.claude_md = repo_root.join("CLAUDE.md");
+        config.config_file = config_file;
+
+        Ok(config)
+    }
 }
 
 /// Git-related configuration.
 ///
 /// Controls git behavior for MPCA workflows, including automatic commits
 /// and branch naming conventions.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GitConfig {
     /// Whether to automatically commit changes during workflows.
     pub auto_commit: bool,
@@ -97,7 +137,7 @@ impl Default for GitConfig {
 ///
 /// Controls code review behavior, including whether reviews are enabled
 /// and the list of reviewers.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ReviewConfig {
     /// Whether code review is enabled for this repository.
     pub enabled: bool,
@@ -110,7 +150,7 @@ pub struct ReviewConfig {
 ///
 /// Defines how the Claude agent should behave for a particular workflow,
 /// including model selection, temperature, and whether to use code presets.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentMode {
     /// Whether to use Claude Code preset (enables advanced code understanding).
     pub use_code_preset: bool,
@@ -129,7 +169,7 @@ pub struct AgentMode {
 ///
 /// Provides defaults for each workflow type with appropriate settings.
 /// Users can override these in `.mpca/config.toml`.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkflowModes {
     /// Agent mode for init workflow.
     pub init: AgentMode,
@@ -187,7 +227,7 @@ impl Default for WorkflowModes {
 /// Tool set variants for different workflow needs.
 ///
 /// Defines the level of tool access granted to the agent for a workflow.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ToolSet {
     /// Minimal tools: fs (read), git (status).
     Minimal,
@@ -203,7 +243,7 @@ pub enum ToolSet {
 ///
 /// Defines which tools are available to each workflow type.
 /// Follows principle of least privilege by default.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkflowTools {
     /// Tool set for init workflow.
     pub init: ToolSet,

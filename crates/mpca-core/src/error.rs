@@ -189,6 +189,11 @@ pub enum MPCAError {
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
 
+    // Anyhow passthrough for rich context
+    /// Generic error with context from anyhow.
+    #[error(transparent)]
+    Anyhow(#[from] anyhow::Error),
+
     // Generic fallback
     /// Unexpected error occurred.
     #[error("unexpected error: {0}")]
