@@ -12,34 +12,37 @@
 //! - [`config`]: Configuration structures for MPCA runtime
 //! - [`state`]: Runtime state and workflow phase tracking
 //! - [`tools`]: Tool registry and adapter traits
+//! - [`runtime`]: Agent runtime for orchestrating workflows
+//! - [`workflows`]: Workflow implementations (init, plan, run, verify)
 //!
 //! # Example
 //!
 //! ```rust,ignore
-//! use mpca_core::{MpcaConfig, RuntimeState, Phase};
+//! use mpca_core::{AgentRuntime, MpcaConfig};
 //! use std::path::PathBuf;
 //!
 //! // Create configuration
 //! let config = MpcaConfig::new(PathBuf::from("/path/to/repo"));
 //!
-//! // Create runtime state
-//! let mut state = RuntimeState::for_feature("my-feature");
-//! assert_eq!(state.phase, Phase::Plan);
+//! // Create runtime
+//! let runtime = AgentRuntime::new(config)?;
 //!
-//! // Advance through workflow
-//! state.advance_phase();
-//! assert_eq!(state.phase, Phase::Run);
+//! // Initialize repository
+//! runtime.init_project()?;
 //! ```
 
 pub mod config;
 pub mod error;
+pub mod runtime;
 pub mod state;
 pub mod tools;
+pub mod workflows;
 
 // Re-export core types for convenience
 pub use config::{
     AgentMode, GitConfig, MpcaConfig, ReviewConfig, ToolSet, WorkflowModes, WorkflowTools,
 };
 pub use error::{MPCAError, Result};
+pub use runtime::AgentRuntime;
 pub use state::{Phase, RuntimeState};
 pub use tools::ToolRegistry;

@@ -5,8 +5,11 @@
 //! the interface for a specific category of operations.
 
 pub mod fs;
+pub mod fs_impl;
 pub mod git;
+pub mod git_impl;
 pub mod shell;
+pub mod shell_impl;
 
 /// Tool registry that manages all available adapters.
 ///

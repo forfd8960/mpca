@@ -8,3 +8,7 @@ tokio = { workspace = true }
 claude-agent-sdk-rs = { workspace = true }
 anyhow = { workspace = true }
 thiserror = { workspace = true }
+mpca-pm = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
