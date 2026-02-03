@@ -7,3 +7,7 @@ edition = "2024"
 minijinja = { workspace = true }
 anyhow = { workspace = true }
 serde = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
