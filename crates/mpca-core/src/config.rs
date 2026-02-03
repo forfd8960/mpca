@@ -44,6 +44,9 @@ pub struct MpcaConfig {
 
     /// Tool set configuration per workflow.
     pub tool_sets: WorkflowTools,
+
+    /// API configuration for Claude SDK.
+    pub api: ApiConfig,
 }
 
 impl MpcaConfig {
@@ -69,6 +72,7 @@ impl MpcaConfig {
             review: ReviewConfig::default(),
             agent_modes: WorkflowModes::default(),
             tool_sets: WorkflowTools::default(),
+            api: ApiConfig::default(),
         }
     }
 
@@ -144,6 +148,19 @@ pub struct ReviewConfig {
 
     /// List of reviewers (usernames or email addresses).
     pub reviewers: Vec<String>,
+}
+
+/// API configuration for Claude SDK.
+///
+/// Allows customization of the Claude API endpoint, useful for:
+/// - Custom deployments or private cloud instances
+/// - Proxy servers or API gateways
+/// - Testing environments with mock servers
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct ApiConfig {
+    /// Base URL for Claude API (e.g., "https://api.anthropic.com").
+    /// If None, uses the SDK default endpoint.
+    pub base_url: Option<String>,
 }
 
 /// Agent mode configuration for a specific workflow.

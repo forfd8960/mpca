@@ -55,3 +55,5 @@ Update design spec.
 ## Build MPCA
 
 Create a new Git worktree (branch from main) under `.trees`. Carefully read `@specs/design.md` and, according to its requirements, use a sub-agent to complete its functionality in stages. Commit code after each stage is completed and ensure precommit hooks pass. After completing all stages, start a new sub-agent to use the CodeX code review skill to review the code against the design spec. Then, carefully consider the review results, modify reasonable issues, and commit the code. Finally, ensure all tests pass and all functionality meets the design spec requirements, then generate a pull request with a detailed PR description.
+
+## update model and baseurl

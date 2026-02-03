@@ -264,6 +264,12 @@ pub struct ReviewConfig {
       pub reviewers: Vec<String>,
 }
 
+pub struct ApiConfig {
+      /// Base URL for Claude API endpoint (optional)
+      /// When None, uses SDK default (https://api.anthropic.com)
+      pub base_url: Option<String>,
+}
+
 pub trait FsAdapter { /* read/write/list */ }
 pub trait GitAdapter { /* worktree/commit/status */ }
 pub trait ShellAdapter { /* run/stream */ }
@@ -511,11 +517,18 @@ impl Default for WorkflowModes {
 Users can override defaults in `.mpca/config.toml`:
 
 ```toml
-[agent.init]
+# API configuration for Claude SDK
+[api]
+# Optional: Override default Claude API endpoint
+# Useful for custom deployments, proxies, or testing
+# base_url = "https://api.anthropic.com"
+
+# Agent configuration per workflow
+[agent_modes.init]
 use_code_preset = false
 model = "claude-3-5-sonnet-20241022"
 
-[agent.plan]
+[agent_modes.plan]
 use_code_preset = true
 temperature = 0.3
 
