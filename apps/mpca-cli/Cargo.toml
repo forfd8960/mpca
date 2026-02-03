@@ -1,0 +1,22 @@
+[package]
+name = "mpca-cli"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "mpca"
+path = "src/main.rs"
+
+[dependencies]
+clap = { workspace = true }
+ratatui = { workspace = true }
+crossterm = "0.28"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+mpca-core = { workspace = true }
+mpca-pm = { workspace = true }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

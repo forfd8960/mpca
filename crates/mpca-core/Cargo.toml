@@ -1,0 +1,14 @@
+[package]
+name = "mpca-core"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = { workspace = true }
+claude-agent-sdk-rs = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+mpca-pm = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
