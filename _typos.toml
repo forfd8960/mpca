@@ -1,5 +1,0 @@
-[default.extend-words]
-ratatui = "ratatui"
-
-[files]
-extend-exclude = ["CHANGELOG.md", "notebooks/*"]
