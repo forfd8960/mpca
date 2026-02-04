@@ -13,7 +13,7 @@ use std::path::PathBuf;
 /// Contains all paths, settings, and sub-configurations needed for MPCA runtime.
 /// This structure is typically loaded from `.mpca/config.toml` with defaults
 /// applied for missing values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MpcaConfig {
     /// Repository root directory (absolute path).
     pub repo_root: PathBuf,
@@ -112,6 +112,24 @@ impl MpcaConfig {
         config.config_file = config_file;
 
         Ok(config)
+    }
+}
+
+impl std::fmt::Debug for MpcaConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MpcaConfig")
+            .field("repo_root", &self.repo_root)
+            .field("trees_dir", &self.trees_dir)
+            .field("specs_dir", &self.specs_dir)
+            .field("claude_md", &self.claude_md)
+            .field("config_file", &self.config_file)
+            .field("prompt_dirs", &self.prompt_dirs)
+            .field("git", &self.git)
+            .field("review", &self.review)
+            .field("agent_modes", &"<configured>")
+            .field("tool_sets", &"<configured>")
+            .field("api", &"<redacted>")
+            .finish()
     }
 }
 

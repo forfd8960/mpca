@@ -11,6 +11,11 @@ pub mod git_impl;
 pub mod shell;
 pub mod shell_impl;
 
+// Mock adapters for testing
+pub mod fs_mock;
+pub mod git_mock;
+pub mod shell_mock;
+
 /// Tool registry that manages all available adapters.
 ///
 /// The registry owns instances of each adapter (file system, git, shell)

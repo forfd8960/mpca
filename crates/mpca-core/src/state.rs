@@ -110,6 +110,7 @@ impl Default for RuntimeState {
 ///
 /// Represents the different phases of an MPCA feature workflow.
 /// Phases are sequential and non-reversible.
+#[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Phase {
     /// Initial setup phase (repository initialization).

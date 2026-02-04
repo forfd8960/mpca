@@ -13,6 +13,36 @@ use crate::tools::git_impl::StdGitAdapter;
 use crate::tools::shell_impl::StdShellAdapter;
 use crate::workflows;
 
+/// Runtime trait for MPCA workflow execution.
+///
+/// Defines the core interface for executing MPCA workflows. This trait allows
+/// for alternative runtime implementations and facilitates testing.
+pub trait Runtime {
+    /// Initializes a repository for MPCA use.
+    ///
+    /// Creates `.mpca/` and `.trees/` directories, configuration files,
+    /// and updates repository documentation.
+    fn init_project(&self) -> Result<()>;
+
+    /// Plans a new feature with the given slug.
+    ///
+    /// Interactively generates feature specifications through conversation
+    /// with Claude.
+    fn plan_feature(&self, feature_slug: &str) -> Result<()>;
+
+    /// Executes a planned feature.
+    ///
+    /// Implements the feature according to its specifications in an
+    /// isolated git worktree.
+    fn run_feature(&self, feature_slug: &str) -> Result<()>;
+
+    /// Sends a chat message to the agent.
+    ///
+    /// Enables free-form conversation with Claude without committing to
+    /// a specific feature workflow.
+    fn chat(&self, message: &str) -> Result<String>;
+}
+
 /// Agent runtime for MPCA workflows.
 ///
 /// The runtime is the main entry point for executing MPCA workflows. It manages
@@ -87,12 +117,71 @@ impl AgentRuntime {
         // Initialize runtime state
         let state = RuntimeState::default();
 
+        // Initialize prompt manager
+        let pm = Self::init_prompt_manager(&config)?;
+
         Ok(Self {
             config,
-            pm: None,
+            pm,
             tools,
             state,
         })
+    }
+
+    /// Initializes the prompt manager with template directory resolution.
+    ///
+    /// Searches for templates in the following order:
+    /// 1. User-specified directories in config.prompt_dirs
+    /// 2. Bundled templates in the crate's templates directory
+    /// 3. Installed location relative to executable
+    fn init_prompt_manager(config: &MpcaConfig) -> Result<Option<mpca_pm::PromptManager>> {
+        // Try user-specified directories first
+        for dir in &config.prompt_dirs {
+            if dir.exists() {
+                match mpca_pm::PromptManager::new(dir.clone()) {
+                    Ok(pm) => return Ok(Some(pm)),
+                    Err(_) => continue,
+                }
+            }
+        }
+
+        // Try to find bundled templates relative to crate root
+        // This works for development and when running from source
+        if let Ok(manifest_dir) = std::env::var("CARGO_MANIFEST_DIR") {
+            let template_dir = std::path::PathBuf::from(manifest_dir)
+                .parent()
+                .and_then(|p| p.parent())
+                .map(|p| p.join("crates/mpca-pm/templates"));
+
+            if let Some(dir) = template_dir
+                && dir.exists()
+                && let Ok(pm) = mpca_pm::PromptManager::new(dir)
+            {
+                return Ok(Some(pm));
+            }
+        }
+
+        // Try relative to executable (for installed version)
+        if let Ok(exe_path) = std::env::current_exe()
+            && let Some(exe_dir) = exe_path.parent()
+        {
+            let template_dir = exe_dir
+                .parent()
+                .map(|p| p.join("share/mpca/templates"))
+                .or_else(|| Some(exe_dir.join("templates")));
+
+            if let Some(dir) = template_dir
+                && dir.exists()
+                && let Ok(pm) = mpca_pm::PromptManager::new(dir)
+            {
+                return Ok(Some(pm));
+            }
+        }
+
+        // Prompt manager is optional - workflows can still run without it
+        // but template-based prompts won't be available
+        tracing::warn!("Prompt manager not initialized - template directory not found");
+        Ok(None)
     }
 
     /// Initializes a repository for MPCA use.
@@ -200,6 +289,37 @@ impl AgentRuntime {
         // - Initialize Claude agent if not already done
         // - Send message to agent
         // - Return response
+        Ok(String::new())
+    }
+}
+
+impl Runtime for AgentRuntime {
+    fn init_project(&self) -> Result<()> {
+        workflows::init_project(&self.config, &*self.tools.fs, &*self.tools.git)
+    }
+
+    fn plan_feature(&self, feature_slug: &str) -> Result<()> {
+        workflows::plan_feature(
+            &self.config,
+            feature_slug,
+            &*self.tools.fs,
+            &*self.tools.git,
+        )
+    }
+
+    fn run_feature(&self, feature_slug: &str) -> Result<()> {
+        workflows::execute_feature(
+            &self.config,
+            feature_slug,
+            &*self.tools.fs,
+            &*self.tools.git,
+            &*self.tools.shell,
+        )
+    }
+
+    fn chat(&self, _message: &str) -> Result<String> {
+        // TODO: Implement in Stage 5
+        // For now, return empty string as stub
         Ok(String::new())
     }
 }

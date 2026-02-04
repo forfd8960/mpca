@@ -307,30 +307,59 @@ async fn run_app<B: ratatui::backend::Backend>(
     tx: mpsc::Sender<String>,
     rx: &mut mpsc::Receiver<String>,
 ) -> Result<()> {
+    use tokio::time::{Duration, interval};
+
+    // Create an interval for UI refreshes
+    let mut ui_refresh = interval(Duration::from_millis(100));
+
+    // Track pending message to send
+    let mut pending_message: Option<String> = None;
+
     loop {
+        // Draw UI
         terminal
             .draw(|f| ui(f, app))
             .map_err(|e| anyhow::anyhow!("Failed to draw UI: {}", e))?;
 
-        // Check for agent responses (non-blocking)
-        if let Ok(response) = rx.try_recv() {
-            if response.starts_with("Error:") {
-                app.add_error(response);
-            } else {
-                app.add_assistant_message(response);
+        // Use select! to handle all events concurrently
+        tokio::select! {
+            // Receive agent responses (highest priority)
+            Some(response) = rx.recv() => {
+                if response.starts_with("Error:") {
+                    app.add_error(response);
+                } else {
+                    app.add_assistant_message(response);
+                }
             }
-        }
 
-        // Poll for keyboard events with timeout
-        if event::poll(std::time::Duration::from_millis(100)).context("Failed to poll events")?
-            && let Event::Key(key) = event::read().context("Failed to read event")?
-        {
-            // Only process key press events (not release)
-            if key.kind == KeyEventKind::Press
-                && let Some(message) = app.handle_input(key.code)
-            {
-                // Send user message to agent
-                tx.send(message).await?;
+            // Send pending message (only if we have one)
+            result = async {
+                if let Some(msg) = pending_message.take() {
+                    tx.send(msg).await
+                } else {
+                    futures::future::pending().await
+                }
+            } => {
+                result?;
+            }
+
+            // Handle keyboard input
+            event_available = tokio::task::spawn_blocking(|| {
+                event::poll(Duration::from_millis(50))
+            }) => {
+                if let Ok(Ok(true)) = event_available
+                    && let Ok(Event::Key(key)) = event::read()
+                    && key.kind == KeyEventKind::Press
+                    && let Some(message) = app.handle_input(key.code)
+                {
+                    // Queue message for sending
+                    pending_message = Some(message);
+                }
+            }
+
+            // UI refresh interval
+            _ = ui_refresh.tick() => {
+                // Just triggers redraw in next iteration
             }
         }
 

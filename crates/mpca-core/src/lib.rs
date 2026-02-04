@@ -43,6 +43,6 @@ pub use config::{
     AgentMode, GitConfig, MpcaConfig, ReviewConfig, ToolSet, WorkflowModes, WorkflowTools,
 };
 pub use error::{MPCAError, Result};
-pub use runtime::AgentRuntime;
+pub use runtime::{AgentRuntime, Runtime};
 pub use state::{Phase, RuntimeState};
 pub use tools::ToolRegistry;

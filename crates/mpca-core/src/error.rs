@@ -11,6 +11,7 @@ use thiserror::Error;
 ///
 /// Each variant represents a specific failure mode with relevant context,
 /// enabling precise error handling and user-friendly error messages.
+#[non_exhaustive]
 #[derive(Error, Debug)]
 pub enum MPCAError {
     // Initialization errors
