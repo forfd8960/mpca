@@ -17,6 +17,8 @@ mpca-core = { workspace = true }
 mpca-pm = { workspace = true }
 tokio = { workspace = true }
 anyhow = { workspace = true }
+claude-agent-sdk-rs = { workspace = true }
+futures = "0.3"
 
 [dev-dependencies]
 tempfile = { workspace = true }
